@@ -1,73 +1,55 @@
 import express from "express";
-import fetch from "node-fetch";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
-app.use(express.json());
 
-// path utils (ES modules)
+// --- utilità per ES modules ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// file statici
+// --- middleware ---
+app.use(express.json());
+
+// --- servi i file statici dalla cartella public ---
 app.use(express.static(path.join(__dirname, "public")));
 
-// ===== CONFIG CONVAI =====
-const CONVAI_API_KEY = process.env.CONVAI_API_KEY;
-const CHARACTER_ID = "159ede3c-e0a9-11f0-a2da-42010a7be027";
-
-// ===== TEST SERVER =====
+// --- endpoint di salute (Render health check) ---
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
-// ===== ENDPOINT NPC =====
+// --- endpoint NPC Convai (testuale, per ora) ---
 app.post("/npc", async (req, res) => {
   try {
-    const prompt = `
-Saluta in modo gentile e caloroso.
-Poi leggi lentamente e con tono emozionato il seguente messaggio:
+    console.log("NPC endpoint chiamato");
 
-"Questo è un saluto di gratitudine.
-Non per un ruolo soltanto,
-ma per la presenza, la responsabilità
-e il segno lasciato nel tempo.
+    const { message } = req.body;
 
-Buon Natale."
-`;
+    if (!message) {
+      return res.status(400).json({ error: "Messaggio mancante" });
+    }
 
-    const response = await fetch(
-      "https://api.convai.com/character/send-text",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "CONVAI-API-KEY": CONVAI_API_KEY
-        },
-        body: JSON.stringify({
-          characterId: CHARACTER_ID,
-          text: prompt,
-          voiceResponse: true
-        })
-      }
-    );
+    // 🔹 RISPOSTA TEMPORANEA (serve solo a verificare il flusso)
+    // Qui Convai verrà collegato dopo
+    const npcReply = "Ciao. Questo è un messaggio di prova dell’NPC.";
 
-    const data = await response.json();
-    res.json(data);
+    res.json({
+      reply: npcReply
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Errore NPC" });
+    console.error("Errore NPC:", error);
+    res.status(500).json({ error: "Errore server NPC" });
   }
 });
 
-// fallback
+// --- fallback: serve sempre index.html ---
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// porta Render
+// --- porta Render ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server avviato sulla porta", PORT);
