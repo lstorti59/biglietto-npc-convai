@@ -13,7 +13,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, sans-serif;
     }
 
     .card {
@@ -21,7 +21,7 @@
       height: 640px;
       background: url("card.png") center / cover no-repeat;
       border-radius: 28px;
-      padding: 22px;
+      padding: 20px;
       box-sizing: border-box;
       color: white;
       display: flex;
@@ -37,7 +37,7 @@
     }
 
     p {
-      line-height: 1.45;
+      line-height: 1.4;
       font-size: 15px;
       margin: 0 0 12px 0;
     }
@@ -48,8 +48,8 @@
 
     .guide {
       font-size: 14px;
-      opacity: 0.95;
-      margin-top: 10px;
+      opacity: 0.9;
+      margin-bottom: 10px;
     }
 
     button {
@@ -61,7 +61,6 @@
       cursor: pointer;
       background: #f3f3f3;
       color: #111;
-      margin-top: 10px;
     }
 
     .pulse {
@@ -69,7 +68,7 @@
       height: 10px;
       background: white;
       border-radius: 50%;
-      margin: 12px auto;
+      margin: 10px auto;
       opacity: 0.6;
       animation: pulse 1.5s infinite;
     }
@@ -97,7 +96,7 @@
       <p><strong>Buon Natale</strong></p>
 
       <p class="guide">
-        Tocca il pulsante qui sotto per ascoltare il messaggio vocale
+        Tocca il pulsante qui sotto per ascoltare il messaggio dell’NPC
       </p>
 
       <button id="playMessage">🎧 Ascolta il messaggio</button>
@@ -113,36 +112,39 @@
 
   </div>
 
-  <!-- SCRIPT NPC (senza Convai, passo intermedio) -->
+  <!-- SCRIPT FRONTEND -->
   <script>
     const button = document.getElementById("playMessage");
 
     button.addEventListener("click", async () => {
-      alert("Sto contattando l’NPC…");
-
       try {
-        const response = await fetch("/npc/speak", {
+        const response = await fetch("/npc", {
           method: "POST",
-          headers: { "Content-Type": "application/json" }
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: "Saluto iniziale"
+          })
         });
+
+        if (!response.ok) {
+          throw new Error("Risposta non valida dal server");
+        }
 
         const data = await response.json();
 
-        alert("Messaggio ricevuto");
-
-        const utterance = new SpeechSynthesisUtterance(data.text);
-        utterance.lang = "it-IT";
-
-        speechSynthesis.speak(utterance);
+        alert("NPC dice:\n\n" + data.reply);
 
       } catch (error) {
-        alert("Errore nel contatto con l’NPC");
         console.error(error);
+        alert("Errore nel contatto con l'NPC");
       }
     });
   </script>
 
 </body>
 </html>
+
 
 
